@@ -1,0 +1,131 @@
+import React, { createContext, useContext, useState, useCallback } from 'react';
+import { Zone, UserSession, Visitor } from '@/types/parking';
+import { initialZones } from '@/data/zones';
+
+interface ParkingContextType {
+  zones: Zone[];
+  user: UserSession | null;
+  visitors: Visitor[];
+  login: (id: string, phone: string, role: 'student' | 'faculty') => void;
+  logout: () => void;
+  parkVehicle: (zoneId: string, vehicleType: 'car' | 'bike') => boolean;
+  exitParking: () => boolean;
+  extendTime: (minutes: number) => void;
+  enterVisitorVehicle: (vehicleNumber: string) => boolean;
+  exitVisitorVehicle: (vehicleNumber: string) => boolean;
+  isSecurityMode: boolean;
+  setSecurityMode: (v: boolean) => void;
+}
+
+const ParkingContext = createContext<ParkingContextType | null>(null);
+
+export const useParkingContext = () => {
+  const ctx = useContext(ParkingContext);
+  if (!ctx) throw new Error('useParkingContext must be used within ParkingProvider');
+  return ctx;
+};
+
+export const ParkingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [zones, setZones] = useState<Zone[]>(initialZones);
+  const [user, setUser] = useState<UserSession | null>(null);
+  const [visitors, setVisitors] = useState<Visitor[]>([]);
+  const [isSecurityMode, setSecurityMode] = useState(false);
+
+  const login = useCallback((id: string, phone: string, role: 'student' | 'faculty') => {
+    setUser({ id, role, phone, vehicleStatus: 'none', extendedMinutes: 0 });
+    setSecurityMode(false);
+  }, []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+  }, []);
+
+  const parkVehicle = useCallback((zoneId: string, vehicleType: 'car' | 'bike'): boolean => {
+    if (!user || user.vehicleStatus === 'parked') return false;
+    const zone = zones.find(z => z.id === zoneId);
+    if (!zone) return false;
+    const key = vehicleType === 'car' ? 'availableCarSlots' : 'availableBikeSlots';
+    if (zone[key] <= 0) return false;
+
+    setZones(prev => prev.map(z =>
+      z.id === zoneId ? { ...z, [key]: z[key] - 1 } : z
+    ));
+    setUser(prev => prev ? {
+      ...prev,
+      vehicleStatus: 'parked',
+      vehicleType,
+      zone: zoneId,
+      entryTime: new Date(),
+      exitTime: undefined,
+      extendedMinutes: 0,
+    } : null);
+    return true;
+  }, [user, zones]);
+
+  const exitParking = useCallback((): boolean => {
+    if (!user || user.vehicleStatus !== 'parked' || !user.vehicleType || !user.zone) return false;
+    const key = user.vehicleType === 'car' ? 'availableCarSlots' : 'availableBikeSlots';
+    const totalKey = user.vehicleType === 'car' ? 'totalCarSlots' : 'totalBikeSlots';
+    
+    setZones(prev => prev.map(z =>
+      z.id === user.zone ? { ...z, [key]: Math.min(z[key] + 1, z[totalKey]) } : z
+    ));
+    setUser(prev => prev ? {
+      ...prev,
+      vehicleStatus: 'none',
+      exitTime: new Date(),
+      zone: undefined,
+      vehicleType: undefined,
+      entryTime: undefined,
+    } : null);
+    return true;
+  }, [user]);
+
+  const extendTime = useCallback((minutes: number) => {
+    setUser(prev => prev ? { ...prev, extendedMinutes: prev.extendedMinutes + minutes } : null);
+  }, []);
+
+  const enterVisitorVehicle = useCallback((vehicleNumber: string): boolean => {
+    const crl = zones.find(z => z.id === 'crl');
+    if (!crl) return false;
+    // Use bike slot for visitors by default, fall back to car
+    let slotType: 'availableBikeSlots' | 'availableCarSlots' = 'availableBikeSlots';
+    if (crl.availableBikeSlots <= 0) {
+      if (crl.availableCarSlots <= 0) return false;
+      slotType = 'availableCarSlots';
+    }
+    setZones(prev => prev.map(z =>
+      z.id === 'crl' ? { ...z, [slotType]: z[slotType] - 1 } : z
+    ));
+    setVisitors(prev => [...prev, { vehicleNumber, entryTime: new Date() }]);
+    return true;
+  }, [zones]);
+
+  const exitVisitorVehicle = useCallback((vehicleNumber: string): boolean => {
+    const visitor = visitors.find(v => v.vehicleNumber === vehicleNumber && !v.exitTime);
+    if (!visitor) return false;
+    const exitTime = new Date();
+    const duration = (exitTime.getTime() - visitor.entryTime.getTime()) / (1000 * 60 * 60);
+    
+    setVisitors(prev => prev.map(v =>
+      v.vehicleNumber === vehicleNumber && !v.exitTime
+        ? { ...v, exitTime, duration }
+        : v
+    ));
+    // Return one slot
+    setZones(prev => prev.map(z =>
+      z.id === 'crl' ? { ...z, availableBikeSlots: Math.min(z.availableBikeSlots + 1, z.totalBikeSlots) } : z
+    ));
+    return true;
+  }, [visitors]);
+
+  return (
+    <ParkingContext.Provider value={{
+      zones, user, visitors, login, logout, parkVehicle, exitParking,
+      extendTime, enterVisitorVehicle, exitVisitorVehicle,
+      isSecurityMode, setSecurityMode,
+    }}>
+      {children}
+    </ParkingContext.Provider>
+  );
+};
