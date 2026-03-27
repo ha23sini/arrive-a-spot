@@ -32,7 +32,7 @@ const Dashboard = () => {
               <Car className="h-4 w-4 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="text-lg font-heading font-bold text-foreground leading-none">ARRIVO</h1>
+              <h1 className="text-lg font-heading font-bold text-foreground leading-none"><h1 className="text-lg font-heading font-bold text-foreground leading-none">CPS</h1></h1>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
                 {user.role} • {user.id}
               </p>
