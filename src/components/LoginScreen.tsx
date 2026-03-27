@@ -8,7 +8,7 @@ import WarningBanner from './WarningBanner';
 type Tab = 'student' | 'faculty' | 'security';
 
 const LoginScreen = () => {
-  const { login, setSecurityMode, enterVisitorVehicle } = useParkingContext();
+  const { login, setSecurityMode } = useParkingContext();
   const [tab, setTab] = useState<Tab>('student');
   const [id, setId] = useState('');
   const [phone, setPhone] = useState('');
@@ -27,14 +27,7 @@ const LoginScreen = () => {
     setError('');
     setSecuritySuccess('');
     if (!vehicleNumber.trim()) { setError('Vehicle number is required'); return; }
-    const success = enterVisitorVehicle(vehicleNumber.trim().toUpperCase());
-    if (success) {
-      setSecurityMode(true);
-      setSecuritySuccess(`Vehicle ${vehicleNumber.toUpperCase()} entered at CRL`);
-      setVehicleNumber('');
-    } else {
-      setError('No slots available at CRL');
-    }
+    setSecurityMode(true);
   };
 
   const tabs: { key: Tab; label: string; icon: React.ReactNode }[] = [

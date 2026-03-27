@@ -11,7 +11,7 @@ interface ParkingContextType {
   parkVehicle: (zoneId: string, vehicleType: 'car' | 'bike') => boolean;
   exitParking: () => boolean;
   extendTime: (minutes: number) => void;
-  enterVisitorVehicle: (vehicleNumber: string) => boolean;
+  enterVisitorVehicle: (vehicleNumber: string, vehicleType: 'car' | 'bike') => boolean;
   exitVisitorVehicle: (vehicleNumber: string) => boolean;
   isSecurityMode: boolean;
   setSecurityMode: (v: boolean) => void;
@@ -85,36 +85,34 @@ export const ParkingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setUser(prev => prev ? { ...prev, extendedMinutes: prev.extendedMinutes + minutes } : null);
   }, []);
 
-  const enterVisitorVehicle = useCallback((vehicleNumber: string): boolean => {
+  const enterVisitorVehicle = useCallback((vehicleNumber: string, vehicleType: 'car' | 'bike'): boolean => {
     const crl = zones.find(z => z.id === 'crl');
     if (!crl) return false;
-    // Use bike slot for visitors by default, fall back to car
-    let slotType: 'availableBikeSlots' | 'availableCarSlots' = 'availableBikeSlots';
-    if (crl.availableBikeSlots <= 0) {
-      if (crl.availableCarSlots <= 0) return false;
-      slotType = 'availableCarSlots';
-    }
+    const slotKey = vehicleType === 'car' ? 'availableCarSlots' : 'availableBikeSlots';
+    if (crl[slotKey] <= 0) return false;
+
     setZones(prev => prev.map(z =>
-      z.id === 'crl' ? { ...z, [slotType]: z[slotType] - 1 } : z
+      z.id === 'crl' ? { ...z, [slotKey]: z[slotKey] - 1 } : z
     ));
-    setVisitors(prev => [...prev, { vehicleNumber, entryTime: new Date() }]);
+    setVisitors(prev => [...prev, { vehicleNumber, vehicleType, status: 'parked' as const, entryTime: new Date() }]);
     return true;
   }, [zones]);
 
   const exitVisitorVehicle = useCallback((vehicleNumber: string): boolean => {
-    const visitor = visitors.find(v => v.vehicleNumber === vehicleNumber && !v.exitTime);
+    const visitor = visitors.find(v => v.vehicleNumber === vehicleNumber && v.status === 'parked');
     if (!visitor) return false;
     const exitTime = new Date();
     const duration = (exitTime.getTime() - visitor.entryTime.getTime()) / (1000 * 60 * 60);
-    
+    const slotKey = visitor.vehicleType === 'car' ? 'availableCarSlots' : 'availableBikeSlots';
+    const totalKey = visitor.vehicleType === 'car' ? 'totalCarSlots' : 'totalBikeSlots';
+
     setVisitors(prev => prev.map(v =>
-      v.vehicleNumber === vehicleNumber && !v.exitTime
-        ? { ...v, exitTime, duration }
+      v.vehicleNumber === vehicleNumber && v.status === 'parked'
+        ? { ...v, status: 'exited' as const, exitTime, duration }
         : v
     ));
-    // Return one slot
     setZones(prev => prev.map(z =>
-      z.id === 'crl' ? { ...z, availableBikeSlots: Math.min(z.availableBikeSlots + 1, z.totalBikeSlots) } : z
+      z.id === 'crl' ? { ...z, [slotKey]: Math.min(z[slotKey] + 1, z[totalKey]) } : z
     ));
     return true;
   }, [visitors]);

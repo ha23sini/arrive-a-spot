@@ -25,6 +25,8 @@ export interface UserSession {
 
 export interface Visitor {
   vehicleNumber: string;
+  vehicleType: VehicleType;
+  status: 'parked' | 'exited';
   entryTime: Date;
   exitTime?: Date;
   duration?: number;
