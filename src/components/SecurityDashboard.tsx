@@ -141,26 +141,29 @@ const SecurityDashboard = () => {
             </div>
           )}
 
-          {/* Step 2: Vehicle Number (disabled until type selected) */}
-          <h2 className="text-lg font-heading font-semibold text-card-foreground mb-2 mt-4">Step 2: Enter Vehicle Number</h2>
-          <Input
-            placeholder={vehicleType ? "Enter Vehicle Number" : "Select vehicle type first"}
-            value={vehicleNumber}
-            onChange={e => setVehicleNumber(e.target.value)}
-            disabled={!vehicleType}
-            className={`mb-4 ${!vehicleType ? 'opacity-50 cursor-not-allowed' : ''}`}
-          />
+          {/* Step 2: Vehicle Number - HIDDEN until type selected */}
+          {vehicleType && (
+            <>
+              <h2 className="text-lg font-heading font-semibold text-card-foreground mb-2 mt-4">Step 2: Enter Vehicle Number</h2>
+              <Input
+                placeholder="Enter Vehicle Number"
+                value={vehicleNumber}
+                onChange={e => setVehicleNumber(e.target.value)}
+                className="mb-4"
+              />
 
-          {error && <p className="text-sm text-destructive font-medium mb-4">{error}</p>}
+              {error && <p className="text-sm text-destructive font-medium mb-4">{error}</p>}
 
-          <div className="flex gap-3">
-            <Button onClick={handlePark} disabled={!vehicleType} className="flex-1 gap-2">
-              <LogIn className="h-4 w-4" /> Park
-            </Button>
-            <Button onClick={handleExit} disabled={!vehicleType} variant="destructive" className="flex-1 gap-2">
-              <LogOut className="h-4 w-4" /> Exit
-            </Button>
-          </div>
+              <div className="flex gap-3">
+                <Button onClick={handlePark} className="flex-1 gap-2">
+                  <LogIn className="h-4 w-4" /> Park
+                </Button>
+                <Button onClick={handleExit} variant="destructive" className="flex-1 gap-2">
+                  <LogOut className="h-4 w-4" /> Exit
+                </Button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Active Vehicles */}
