@@ -8,7 +8,7 @@ import WarningBanner from './WarningBanner';
 type Tab = 'student' | 'faculty' | 'security';
 
 const LoginScreen = () => {
-  const { login, setSecurityMode, enterVisitorVehicle } = useParkingContext();
+  const { login, setSecurityMode } = useParkingContext();
   const [tab, setTab] = useState<Tab>('student');
   const [id, setId] = useState('');
   const [phone, setPhone] = useState('');
