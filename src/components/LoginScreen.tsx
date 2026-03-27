@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useParkingContext } from '@/context/ParkingContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Car, Shield, GraduationCap, Briefcase } from 'lucide-react';
+import { Shield, GraduationCap, Briefcase } from 'lucide-react';
+import parkingIcon from '@/assets/parking-icon.jpeg';
 import WarningBanner from './WarningBanner';
 
 type Tab = 'student' | 'faculty' | 'security';
@@ -41,12 +42,10 @@ const LoginScreen = () => {
       <WarningBanner />
       <div className="flex flex-col items-center justify-center px-4 py-8 sm:py-16">
         <div className="flex items-center gap-3 mb-8">
-          <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
-            <Car className="h-6 w-6 text-primary-foreground" />
-          </div>
+          <img src={parkingIcon} alt="CPS Logo" className="h-12 w-12 rounded-xl object-cover" />
           <div>
-            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-foreground tracking-tight">ARRIVO</h1>
-            <p className="text-xs text-muted-foreground font-medium tracking-wider uppercase">Smart Campus Parking</p>
+            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-foreground tracking-tight">CPS</h1>
+            <p className="text-xs text-muted-foreground font-medium tracking-wider uppercase">Campus Parking System</p>
           </div>
         </div>
 
