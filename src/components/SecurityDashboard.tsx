@@ -28,12 +28,13 @@ const SecurityDashboard = () => {
 
   const handlePark = () => {
     setError('');
+    if (!vehicleType) { setError('Please select vehicle type first (Car or Bike)'); return; }
     const vn = vehicleNumber.trim().toUpperCase();
     if (!vn) { setError('Vehicle number is required'); return; }
 
     const alreadyParked = visitors.find(v => v.vehicleNumber === vn && v.status === 'parked');
     if (alreadyParked) {
-      setError('This vehicle is already parked. Please exit first.');
+      setError('This vehicle is already parked. Exit first.');
       return;
     }
 
