@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useParkingContext } from '@/context/ParkingContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Car, Shield, GraduationCap, Briefcase } from 'lucide-react';
+import { Shield, GraduationCap, Briefcase } from 'lucide-react';
+import parkingIcon from '@/assets/parking-icon.jpeg';
 import WarningBanner from './WarningBanner';
 
 type Tab = 'student' | 'faculty' | 'security';
