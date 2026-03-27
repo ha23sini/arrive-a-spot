@@ -11,7 +11,7 @@ import { VehicleType } from '@/types/parking';
 
 const SecurityDashboard = () => {
   const { zones, visitors, setSecurityMode, enterVisitorVehicle, exitVisitorVehicle } = useParkingContext();
-  const [vehicleType, setVehicleType] = useState<VehicleType>('car');
+  const [vehicleType, setVehicleType] = useState<VehicleType | null>(null);
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [error, setError] = useState('');
   const { toast } = useToast();
@@ -28,12 +28,13 @@ const SecurityDashboard = () => {
 
   const handlePark = () => {
     setError('');
+    if (!vehicleType) { setError('Please select vehicle type first (Car or Bike)'); return; }
     const vn = vehicleNumber.trim().toUpperCase();
     if (!vn) { setError('Vehicle number is required'); return; }
 
     const alreadyParked = visitors.find(v => v.vehicleNumber === vn && v.status === 'parked');
     if (alreadyParked) {
-      setError('This vehicle is already parked. Please exit first.');
+      setError('This vehicle is already parked. Exit first.');
       return;
     }
 
@@ -106,47 +107,57 @@ const SecurityDashboard = () => {
           </div>
         )}
 
-        {/* Vehicle Type Selection */}
+        {/* Step 1: Vehicle Type Selection */}
         <div className="bg-card rounded-xl border p-5 mb-6">
-          <h2 className="text-lg font-heading font-semibold text-card-foreground mb-4">Park / Exit Vehicle</h2>
+          <h2 className="text-lg font-heading font-semibold text-card-foreground mb-2">Step 1: Select Vehicle Type</h2>
+          <p className="text-xs text-muted-foreground mb-4">You must select a type before entering a vehicle number.</p>
 
           <div className="flex gap-3 mb-4">
             <button
-              onClick={() => setVehicleType('car')}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-colors ${
+              onClick={() => { setVehicleType('car'); setError(''); }}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-lg border p-4 text-sm font-medium transition-all ${
                 vehicleType === 'car'
-                  ? 'bg-primary text-primary-foreground border-primary'
+                  ? 'bg-primary text-primary-foreground border-primary ring-2 ring-primary/30'
                   : 'bg-background text-muted-foreground border-border hover:border-primary/50'
               }`}
             >
-              <Car className="h-4 w-4" /> Car
+              <Car className="h-5 w-5" /> Car Parking
             </button>
             <button
-              onClick={() => setVehicleType('bike')}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-lg border p-3 text-sm font-medium transition-colors ${
+              onClick={() => { setVehicleType('bike'); setError(''); }}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-lg border p-4 text-sm font-medium transition-all ${
                 vehicleType === 'bike'
-                  ? 'bg-primary text-primary-foreground border-primary'
+                  ? 'bg-primary text-primary-foreground border-primary ring-2 ring-primary/30'
                   : 'bg-background text-muted-foreground border-border hover:border-primary/50'
               }`}
             >
-              <Bike className="h-4 w-4" /> Bike
+              <Bike className="h-5 w-5" /> Bike Parking
             </button>
           </div>
 
+          {vehicleType && (
+            <div className="text-xs text-primary font-medium mb-2">
+              Selected: <span className="capitalize">{vehicleType}</span> Parking
+            </div>
+          )}
+
+          {/* Step 2: Vehicle Number (disabled until type selected) */}
+          <h2 className="text-lg font-heading font-semibold text-card-foreground mb-2 mt-4">Step 2: Enter Vehicle Number</h2>
           <Input
-            placeholder="Enter Vehicle Number"
+            placeholder={vehicleType ? "Enter Vehicle Number" : "Select vehicle type first"}
             value={vehicleNumber}
             onChange={e => setVehicleNumber(e.target.value)}
-            className="mb-4"
+            disabled={!vehicleType}
+            className={`mb-4 ${!vehicleType ? 'opacity-50 cursor-not-allowed' : ''}`}
           />
 
           {error && <p className="text-sm text-destructive font-medium mb-4">{error}</p>}
 
           <div className="flex gap-3">
-            <Button onClick={handlePark} className="flex-1 gap-2">
+            <Button onClick={handlePark} disabled={!vehicleType} className="flex-1 gap-2">
               <LogIn className="h-4 w-4" /> Park
             </Button>
-            <Button onClick={handleExit} variant="destructive" className="flex-1 gap-2">
+            <Button onClick={handleExit} disabled={!vehicleType} variant="destructive" className="flex-1 gap-2">
               <LogOut className="h-4 w-4" /> Exit
             </Button>
           </div>
