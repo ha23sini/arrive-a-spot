@@ -85,19 +85,16 @@ export const ParkingProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setUser(prev => prev ? { ...prev, extendedMinutes: prev.extendedMinutes + minutes } : null);
   }, []);
 
-  const enterVisitorVehicle = useCallback((vehicleNumber: string): boolean => {
+  const enterVisitorVehicle = useCallback((vehicleNumber: string, vehicleType: 'car' | 'bike'): boolean => {
     const crl = zones.find(z => z.id === 'crl');
     if (!crl) return false;
-    // Use bike slot for visitors by default, fall back to car
-    let slotType: 'availableBikeSlots' | 'availableCarSlots' = 'availableBikeSlots';
-    if (crl.availableBikeSlots <= 0) {
-      if (crl.availableCarSlots <= 0) return false;
-      slotType = 'availableCarSlots';
-    }
+    const slotKey = vehicleType === 'car' ? 'availableCarSlots' : 'availableBikeSlots';
+    if (crl[slotKey] <= 0) return false;
+
     setZones(prev => prev.map(z =>
-      z.id === 'crl' ? { ...z, [slotType]: z[slotType] - 1 } : z
+      z.id === 'crl' ? { ...z, [slotKey]: z[slotKey] - 1 } : z
     ));
-    setVisitors(prev => [...prev, { vehicleNumber, entryTime: new Date() }]);
+    setVisitors(prev => [...prev, { vehicleNumber, vehicleType, status: 'parked' as const, entryTime: new Date() }]);
     return true;
   }, [zones]);
 
