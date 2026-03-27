@@ -11,7 +11,7 @@ import { VehicleType } from '@/types/parking';
 
 const SecurityDashboard = () => {
   const { zones, visitors, setSecurityMode, enterVisitorVehicle, exitVisitorVehicle } = useParkingContext();
-  const [vehicleType, setVehicleType] = useState<VehicleType>('car');
+  const [vehicleType, setVehicleType] = useState<VehicleType | null>(null);
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [error, setError] = useState('');
   const { toast } = useToast();
