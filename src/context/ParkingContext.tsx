@@ -11,7 +11,7 @@ interface ParkingContextType {
   parkVehicle: (zoneId: string, vehicleType: 'car' | 'bike') => boolean;
   exitParking: () => boolean;
   extendTime: (minutes: number) => void;
-  enterVisitorVehicle: (vehicleNumber: string) => boolean;
+  enterVisitorVehicle: (vehicleNumber: string, vehicleType: 'car' | 'bike') => boolean;
   exitVisitorVehicle: (vehicleNumber: string) => boolean;
   isSecurityMode: boolean;
   setSecurityMode: (v: boolean) => void;
